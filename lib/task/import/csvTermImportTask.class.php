@@ -73,8 +73,8 @@ EOF;
             'errorLog' => $options['error-log'],
 
             'saveLogic' => function (&$self) {
-                $legacyId = $self->columnValue('legacyId');
-                $parentId = $self->columnValue('parentId');
+                $legacyId = ($self->columnExists('legacyId')) ? $self->columnValue('legacyId') : false;
+                $parentId = ($self->columnExists('parentId')) ? $self->columnValue('parentId') : false;
                 $taxonomyId = $self->columnValue('taxonomyId');
                 $culture = $self->columnValue('culture');
 
@@ -125,7 +125,11 @@ EOF;
 
                 // Set term name and code and save
                 $term->setName($self->columnValue('name'), ['culture' => $culture]);
-                $term->code = $self->columnValue('code');
+
+                if ($self->columnExists('code')) {
+                    $term->code = $self->columnValue('code');
+                }
+
                 $term->save();
 
                 // Store new internal ID in case there are subsequent translations to import
@@ -141,59 +145,67 @@ EOF;
                 ];
 
                 foreach ($noteTypes as $column => $typeId) {
-                    $noteDataText = trim($self->columnValue($column));
+                    if ($self->columnExists('')) {
+                        $noteDataText = trim($self->columnValue($column));
 
-                    if (!empty($noteDataText)) {
-                        $noteData = explode('|', $noteDataText);
+                        if (!empty($noteDataText)) {
+                            $noteData = explode('|', $noteDataText);
 
-                        foreach ($noteData as $noteText) {
-                            $note = new QubitNote();
-                            $note->objectId = $term->id;
-                            $note->typeId = $typeId;
-                            $note->content = $noteText;
+                            foreach ($noteData as $noteText) {
+                                $note = new QubitNote();
+                                $note->objectId = $term->id;
+                                $note->typeId = $typeId;
+                                $note->content = $noteText;
 
-                            $note->save();
+                                $note->save();
+                            }
                         }
                     }
                 }
 
                 // Add other names
-                $otherNameDataText = trim($self->columnValue('otherFormsOfName'));
+                if ($self->columnExists('otherFormsOfName')) {
+                    $otherNameDataText = trim($self->columnValue('otherFormsOfName'));
 
-                if (!empty($otherNameDataText)) {
-                    $otherNameData = explode('|', $otherNameDataText);
+                    if (!empty($otherNameDataText)) {
+                        $otherNameData = explode('|', $otherNameDataText);
 
-                    foreach ($otherNameData as $name) {
-                        $otherName = new QubitOtherName();
-                        $otherName->objectId = $term->id;
-                        $otherName->typeId = QubitTerm::ALTERNATIVE_LABEL_ID;
-                        $otherName->name = $name;
+                        foreach ($otherNameData as $name) {
+                            $otherName = new QubitOtherName();
+                            $otherName->objectId = $term->id;
+                            $otherName->typeId = QubitTerm::ALTERNATIVE_LABEL_ID;
+                            $otherName->name = $name;
 
-                        $otherName->save();
+                            $otherName->save();
+                        }
                     }
                 }
 
                 // Add related terms
                 $self->status['termRelations'][$term->id] = [];
 
-                $relatedTermsDataText = trim($self->columnValue('relatedTerms'));
+                if ($self->columnExists('relatedTerms')) {
+                    $relatedTermsDataText = trim($self->columnValue('relatedTerms'));
 
-                if (!empty($relatedTermsDataText)) {
-                    $relatedTermsData = explode('|', $relatedTermsDataText);
+                    if (!empty($relatedTermsDataText)) {
+                        $relatedTermsData = explode('|', $relatedTermsDataText);
 
-                    foreach ($relatedTermsData as $related) {
-                        $relatedData = [
-                            'name' => $related,
-                            'taxonomyId' => $taxonomyId,
-                            'culture' => $culture,
-                        ];
+                        foreach ($relatedTermsData as $related) {
+                            $relatedData = [
+                                'name' => $related,
+                                'taxonomyId' => $taxonomyId,
+                                'culture' => $culture,
+                            ];
 
-                        $self->status['termRelations'][$term->id][] = $relatedData;
+                            $self->status['termRelations'][$term->id][] = $relatedData;
+                        }
                     }
                 }
 
                 // Add keymap entry
-                $self->createKeymapEntry($self->getStatus('sourceName'), $self->columnValue('legacyId'), $term);
+                if ($self->columnExists('legacyId')) {
+                    $self->createKeymapEntry($self->getStatus('sourceName'), $self->columnValue('legacyId'), $term);
+                }
             },
 
             'completeLogic' => function (&$self) {
