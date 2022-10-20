@@ -74,9 +74,29 @@ EOF;
 
             'saveLogic' => function (&$self) {
                 $legacyId = ($self->columnExists('legacyId')) ? $self->columnValue('legacyId') : false;
-                $parentId = ($self->columnExists('parentId')) ? $self->columnValue('parentId') : false;
+                //$parentId = ($self->columnExists('parentId')) ? $self->columnValue('parentId') : false;
                 $taxonomyId = $self->columnValue('taxonomyId');
                 $culture = $self->columnValue('culture');
+
+                // Set parent ID
+                if ($self->columnExists('parentName')) {
+                    // Look up parent ID using name, taxonomy ID, and culture
+                    $criteria = new Criteria();
+                    $criteria->add(QubitTerm::TAXONOMY_ID, $taxonomyId);
+                    $criteria->addJoin(QubitTerm::ID, QubitTermI18n::ID);
+                    $criteria->add(QubitTermI18n::CULTURE, $culture);
+                    $criteria->add(QubitTermI18n::NAME, $self->columnValue('parentName'));
+
+                    $term = QubitTerm::getOne($criteria);
+
+                    if (null !== $term) {
+                        $parentId = $term->id;
+                    } else {
+                        $parentId = QubitTerm::ROOT_ID;
+                    }
+                } elseif ($self->columnExists('parentId')) {
+                    $parentId = $self->columnValue('parentId');
+                }
 
                 // Set culture
                 $self->status['context']->getUser()->setCulture($culture);
