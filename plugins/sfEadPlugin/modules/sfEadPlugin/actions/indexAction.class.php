@@ -31,17 +31,42 @@ class sfEadPluginIndexAction extends InformationObjectIndexAction
   {
     sfConfig::set('sf_escaping_strategy', false);
 
+//hack
+$this->exportLanguage = "el";
+    $this->context->getUser()->setCulture("el");
+        sfContext::getInstance()->user->setCulture("el");
+//hack
+
     // run the core informationObject show action commands
     parent::execute($request);
 
     $this->ead = new sfEadPlugin($this->resource);
 
+    //hack
+  //  $this->exportLanguage = "el";
+//    $this->context->getUser()->setCulture("el");
+	sfContext::getInstance()->user->setCulture("el");
+//    $this->sourceLanguage = "el";
+    //hack
+
     // Determine language(s) used in the export
     $this->exportLanguage = sfContext::getInstance()->user->getCulture();
+
+    //hack
+//    $this->exportLanguage = "el";
+//    $this->context->getUser()->setCulture("el");
+    //hack
+
     $this->sourceLanguage = $this->resource->getSourceCulture();
 
     // Instantiate Object to use in Converting ISO 639-1 language codes to 639-2
     $this->iso639convertor = new fbISO639_Map;
+
+    //hack
+    $this->exportLanguage = "el";
+    $this->context->getUser()->setCulture("el");
+    $this->sourceLanguage = "el";
+    //hack
 
     // Set array with valid EAD level values (see ead.dtd line 2220)
     $this->eadLevels = array('class', 'collection', 'file', 'fonds', 'item', 'otherlevel', 'recordgrp', 'series', 'subfonds', 'subgrp', 'subseries');

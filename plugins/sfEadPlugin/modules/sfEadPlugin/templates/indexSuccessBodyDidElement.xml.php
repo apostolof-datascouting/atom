@@ -48,6 +48,10 @@
     <unittitle encodinganalog="<?php echo $ead->getMetadataParameter('unittitle') ?>"><?php echo escape_dc(esc_specialchars($value)) ?></unittitle>
   <?php endif; ?>
 
+  <?php if (0 < strlen($value = $$resourceVar->getTitle(array('culture' => 'el')))): ?>
+    <unittitle_gr encodinganalog="<?php echo $ead->getMetadataParameter('unittitle') ?>"><?php echo escape_dc(esc_specialchars($value)) ?></unittitle_gr>
+  <?php endif; ?>
+
   <?php if (0 < strlen($value = $$resourceVar->alternateTitle)): ?>
     <unittitle type="parallel" <?php if (0 < strlen($encoding = $ead->getMetadataParameter('parallel'))): ?>encodinganalog="<?php echo $encoding ?>"<?php endif; ?>><?php echo escape_dc(esc_specialchars($value)) ?></unittitle>
   <?php endif; ?>
